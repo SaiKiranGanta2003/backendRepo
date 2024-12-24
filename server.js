@@ -160,7 +160,7 @@ app.post("/addDataToDb", async (req, res) => {
     status,
   } = req.body;
   console.log(req.body);
-  const userId=userId;
+  const userId=userID;
   try {
     const newData = new userSchema({
       name,
