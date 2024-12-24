@@ -1,0 +1,121 @@
+<!-- frontend/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDF Upload and Management</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+    .container {
+      width: 80%;
+      margin: 0 auto;
+      text-align: center;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+    }
+    input[type="file"] {
+      padding: 10px;
+    }
+    #pdfList {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Upload and Manage PDF Files</h1>
+    
+    <!-- File upload form -->
+    <div>
+      <input type="file" id="fileInput" />
+      <button onclick="uploadFile()">Upload PDF</button>
+    </div>
+    
+    <div id="message"></div>
+    
+    <!-- List of PDFs -->
+    <div id="pdfList">
+      <h2>Uploaded PDFs</h2>
+      <ul id="pdfListContainer"></ul>
+    </div>
+  </div>
+
+  <script>
+    const backendUrl = "http://localhost:3000"; // Backend URL
+
+    // Upload file function
+    function uploadFile() {
+      const fileInput = document.getElementById("fileInput");
+      const formData = new FormData();
+      formData.append("file", fileInput.files[0]);
+
+      fetch(`${backendUrl}/upload`, {
+        method: "POST",
+        body: formData,
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.fileId) {
+          displayMessage("File uploaded successfully!");
+          listFiles(); // Refresh the list of uploaded files
+        } else {
+          displayMessage("Failed to upload file.");
+        }
+      })
+      .catch(error => displayMessage("Error uploading file."));
+    }
+
+    // Display message
+    function displayMessage(message) {
+      const messageDiv = document.getElementById("message");
+      messageDiv.textContent = message;
+    }
+
+    // List all uploaded PDFs
+    function listFiles() {
+      fetch(`${backendUrl}/files`)
+        .then(response => response.json())
+        .then(files => {
+          const pdfListContainer = document.getElementById("pdfListContainer");
+          pdfListContainer.innerHTML = "";
+          
+          files.forEach(file => {
+            const li = document.createElement("li");
+            li.innerHTML = `
+              <span>${file.filename}</span>
+              <button onclick="downloadFile('${file._id}')">Download</button>
+              <button onclick="deleteFile('${file._id}')">Delete</button>
+            `;
+            pdfListContainer.appendChild(li);
+          });
+        });
+    }
+
+    // Download file by ID
+    function downloadFile(fileId) {
+      window.location.href = `${backendUrl}/download/${fileId}`;
+    }
+
+    // Delete file by ID
+    function deleteFile(fileId) {
+      fetch(`${backendUrl}/delete/${fileId}`, { method: "DELETE" })
+        .then(response => response.json())
+        .then(data => {
+          displayMessage("File deleted successfully!");
+          listFiles(); // Refresh the list
+        })
+        .catch(error => displayMessage("Error deleting file."));
+    }
+
+    // Load file list on page load
+    window.onload = listFiles;
+  </script>
+
+</body>
+</html>
