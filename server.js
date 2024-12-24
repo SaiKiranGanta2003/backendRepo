@@ -169,7 +169,7 @@ app.post("/addDataToDb", async (req, res) => {
       Department,
       EmployeeID,
       companyName,
-      userID,
+      userId,
       status: "Created",
     });
     await newData.save();
